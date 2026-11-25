@@ -148,6 +148,7 @@ struct mansession {
 	struct proxy_user user;
 	char actionid[MAX_LEN];
 	char untilevent[MAX_LEN];
+	int maxtime;				/* ms to wait for the response (http X-Maxtime:, 0 = default 30s) */
 	char challenge[10];			/*! Authentication challenge */
 	int writetimeout;  			/* Timeout for ast_carefulwrite() */
 	struct mstack *stack;

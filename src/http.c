@@ -168,7 +168,9 @@ int _read(struct mansession *s, struct message *m) {
 
 	char line[MAX_LEN], method[10], formdata[MAX_LEN], status[20];
 	int res, clength = 0;
-	int timer = 30000;
+	/* X-Maxtime is parsed in the call that returns the request, but the wait
+	   happens in the next call, so it must live in the session, not here. */
+	int timer = s->maxtime > 0 ? s->maxtime : 30000;
 
 	memset(method, 0, sizeof method);
 	memset(formdata, 0, sizeof formdata);
@@ -213,7 +215,7 @@ int _read(struct mansession *s, struct message *m) {
 				strncpy(s->untilevent, line+15, MAX_LEN-1);
 
 			if ( !strncasecmp(line, "X-Maxtime: ", 11) )
-				timer = atoi(line+11);
+				s->maxtime = atoi(line+11);
 
 			if (!*method) {
 				if ( !strncmp(line,"POST",4) ) {
