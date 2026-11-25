@@ -232,6 +232,16 @@ int WriteClients(struct message *m) {
 			c = c->next;
 			continue;
 		}
+		// Never hand Asterisk output to a client that has not authenticated.
+		// ValidateAction() checks this, but an autofilter match used to bypass
+		// it, so with autofilter=on any connection got responses without an
+		// ActionID. Login/ProxyKey replies are written directly, not via here.
+		if ( pc.authrequired && !c->authenticated ) {
+			if( debug > 5 )
+				debugmsg("Not sending to unauthenticated client");
+			c = c->next;
+			continue;
+		}
 		autofilter = -1; // Default to not enabled...
 		if( debug > 8 )
 			debugmsg("Autofilter = %d, ActionID = %s", c->autofilter, c->actionid);
