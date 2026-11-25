@@ -9,6 +9,7 @@
 */
 
 #include "astmanproxy.h"
+#include <time.h>
 
 // SwapChar:	This routine swaps one character for another
 void SwapChar(char *pOriginal, char cBad, char cGood) {
@@ -177,10 +178,21 @@ int _read(struct mansession *s, struct message *m) {
 	for (;;) {
 
 		if (s->inputcomplete) {
-			/* The response has started, wait for timeout or completion. */
-			while( timer > 0 && !s->outputcomplete) {
-				usleep(10);
-				timer -= 10;
+			/* The response has started, wait for timeout or completion.
+			   timer is in ms (default 30000, or X-Maxtime:). This used to
+			   count usleep(10) calls as 10 ms each, so the real wait was
+			   only a fraction of a second. */
+			struct timespec start, now;
+			long elapsed;
+
+			clock_gettime(CLOCK_MONOTONIC, &start);
+			while( !s->outputcomplete ) {
+				clock_gettime(CLOCK_MONOTONIC, &now);
+				elapsed = (now.tv_sec - start.tv_sec) * 1000L
+					+ (now.tv_nsec - start.tv_nsec) / 1000000L;
+				if ( elapsed >= timer )
+					break;
+				usleep(1000);
 			}
 			s->outputcomplete = 1;
 			return -1;	/* Cause connection to close */
