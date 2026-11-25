@@ -107,10 +107,14 @@ struct proxyconfig {
 	char forcebanner[80];			/* override banner output in 'standard' protocol */
 };
 
+struct mansession;
+struct message;
+
+/* Full prototypes: since C23 (GCC 15 default) "()" means "no arguments". */
 struct iohandler {
-	int (*read) ();
-	int (*write) ();
-	int (*onconnect) ();
+	int (*read) (struct mansession *, struct message *);
+	int (*write) (struct mansession *, struct message *);
+	int (*onconnect) (struct mansession *, struct message *);
 	char formatname[80];
 	void *dlhandle;
 	struct iohandler *next;

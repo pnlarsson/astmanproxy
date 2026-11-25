@@ -235,7 +235,7 @@ int WriteClients(struct message *m) {
 		autofilter = -1; // Default to not enabled...
 		if( debug > 8 )
 			debugmsg("Autofilter = %d, ActionID = %s", c->autofilter, c->actionid);
-		if (c->autofilter && c->actionid) {
+		if (c->autofilter) {
 			if( debug > 5 )
 				debugmsg("Checking ActionID filtering");
 			actionid = astman_get_header(m, ACTION_ID);
