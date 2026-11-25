@@ -209,7 +209,7 @@ int _read(struct mansession *s, struct message *m) {
 			if ( !clength && !strncasecmp(line, "Content-Length: ", 16) )
 				clength = atoi(line+16);
 
-			if ( *s->untilevent != '\0' && !strncasecmp(line, "X-Until-Event: ", 15) )
+			if ( *s->untilevent == '\0' && !strncasecmp(line, "X-Until-Event: ", 15) )
 				strncpy(s->untilevent, line+15, MAX_LEN-1);
 
 			if ( !strncasecmp(line, "X-Maxtime: ", 11) )
