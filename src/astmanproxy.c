@@ -249,10 +249,19 @@ int WriteClients(struct message *m) {
 	// New AutoFilter, actionid like "ast123-XX"
 				memmove( actionid, actionid+strlen(c->actionid), strlen(actionid)+1-strlen(c->actionid));
 				autofilter = 1;
-			} else if (debug > 5) {
+			} else if ( *actionid != '\0' ) {
+	// Response to another client's action: block it. This used to depend on
+	// debug > 5, so without -d every client received every response.
 				autofilter = 0;
-				debugmsg("ActionID Filtered (blocked) a message to a client");
+				if (debug > 5)
+					debugmsg("ActionID Filtered (blocked) a message to a client");
 			}
+		}
+		if (autofilter == 0) {
+			// Blocked: don't write it, replay stacked events or mark the
+			// client's (HTTP) output complete with someone else's message.
+			c = c->next;
+			continue;
 		}
 
 		if ( (valret=ValidateAction(m, c, 1)) || autofilter == 1 ) {
@@ -968,7 +977,12 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	listen(asock, 5);
+	/* A backlog of 5 overflowed under connect bursts; on overflow Linux silently
+	   drops the handshake and clients hang ~60s waiting for the banner. */
+	if (listen(asock, SOMAXCONN) < 0) {
+		fprintf(stderr,"Cannot listen on listener socket: %s\n", strerror(errno));
+		exit(1);
+	}
 	if (debug)
 		debugmsg("Listening for connections");
 	logmsg("Proxy Started: Listening for connections");
